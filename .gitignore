@@ -1,0 +1,30 @@
+# Node.js
+node_modules/
+dist/
+.env
+
+# Flutter / Dart
+build/
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+android/app/key.properties
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+*.lock
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*.DS_Store
+
+# Sensitive bits
+**/.env
+**/firebase-admin-key.json
+**/serviceAccountKey.json
+**/*-firebase-adminsdk-*.json

@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+    restart: unless-stopped
+
+  cloud_admin:
+    build:
+      context: ./cloud_admin
+    ports:
+      - "8080:80"
+    environment:
+      - PORT=80
+    restart: unless-stopped
+
+  cloud_user:
+    build:
+      context: ./cloud_user
+    ports:
+      - "8081:80"
+    environment:
+      - PORT=80
+    restart: unless-stopped
