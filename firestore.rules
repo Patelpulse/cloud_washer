@@ -1,0 +1,246 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user owns the document
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return isAuthenticated() && 
+             get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // ========================
+    // USERS COLLECTION
+    // ========================
+    // ========================
+    // USERS COLLECTION
+    // ========================
+    match /users/{userId} {
+      allow read, write: if true;
+      match /{allPaths=**} {
+        allow read, write: if true;
+      }
+    }
+    
+    // ========================
+    // ORDERS COLLECTION (Global)
+    // ========================
+    match /orders/{orderId} {
+       allow read, write: if true;
+       match /{allPaths=**} {
+         allow read, write: if true;
+       }
+    }
+    
+    // ========================
+    // ORDERS COLLECTION GROUP (For all user orders)
+    // Allows querying all orders from users/{userId}/orders/{orderId}
+    // ========================
+    match /{path=**}/orders/{orderId} {
+      allow read: if true;  // Allow reading orders from any user
+      allow write: if true; // Allow writing orders
+    }
+    
+    // ========================
+    // SERVICES COLLECTION
+    // ========================
+    match /services/{serviceId} {
+      // Anyone can read services (public)
+      allow read: if true;
+      
+      // TEMPORARY: Allow writes for development (TODO: Add proper admin authentication)
+      allow write: if true;
+    }
+    
+    // ========================
+    // SUB-CATEGORIES COLLECTION
+    // ========================
+    match /subCategories/{subCategoryId} {
+      // Anyone can read sub-categories (public)
+      allow read: if true;
+      
+      // TEMPORARY: Allow writes for development (TODO: Add proper admin authentication)
+      allow write: if true;
+    }
+    
+    // ========================
+    // CATEGORIES COLLECTION
+    // ========================
+    match /categories/{categoryId} {
+      // Anyone can read categories (public)
+      allow read: if true;
+      
+      // TEMPORARY: Allow writes for development (TODO: Add proper admin authentication)
+      allow write: if true;
+    }
+    
+    // ========================
+    // ADDONS COLLECTION
+    // ========================
+    match /addons/{addonId} {
+      // Anyone can read addons (public)
+      allow read: if true;
+      
+      // TEMPORARY: Allow writes for development (TODO: Add proper admin authentication)
+      allow write: if true;
+    }
+    
+    // ========================
+    // CITIES COLLECTION
+    // ========================
+    match /cities/{cityId} {
+      // Anyone can read cities (public)
+      allow read: if true;
+      
+      // TEMPORARY: Allow writes for development (TODO: Add proper admin authentication)
+      allow write: if true;
+    }
+    
+    // ========================
+    // BANNERS COLLECTION
+    // ========================
+    match /banners/{bannerId} {
+      // Anyone can read banners (public)
+      allow read: if true;
+      
+      // TEMPORARY: Allow writes for development (TODO: Add proper admin authentication)
+      allow write: if true;
+    }
+    
+    // ========================
+    // TESTIMONIALS COLLECTION
+    // ========================
+    match /testimonials/{testimonialId} {
+      // Anyone can read testimonials (public)
+      allow read: if true;
+      
+      // TEMPORARY: Allow writes for development (TODO: Add proper admin authentication)
+      allow write: if true;
+    }
+    
+    // ========================
+    // ADDRESSES COLLECTION (Global)
+    // ========================
+    match /addresses/{addressId} {
+      // Allow read if owns the address or is admin
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || isAdmin()
+      );
+      
+      // Allow create if authenticated and creating own address
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      
+      // Allow update if owns the address
+      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      
+      // Allow delete if owns the address
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+    
+    // ========================
+    // ADMINS COLLECTION
+    // ========================
+    match /admins/{adminId} {
+      // Only admins can read
+      allow read: if isAdmin();
+      
+      // Only admins can write
+      allow write: if isAdmin();
+    }
+    
+    // ========================
+    // NOTIFICATIONS COLLECTION
+    // ========================
+    // ========================
+    // NOTIFICATIONS COLLECTION
+    // ========================
+    match /notifications/{notificationId} {
+      allow read, write: if true; // Temporarily allow open access for testing
+    }
+
+    // ========================
+    // ADMIN NOTIFICATIONS COLLECTION (New)
+    // ========================
+    match /admin_notifications/{notificationId} {
+      allow read, write: if true; // Temporarily allow open access so User App can write to it
+    }
+    
+    // ========================
+    // REVIEWS COLLECTION
+    // ========================
+    match /reviews/{reviewId} {
+      // Anyone can read reviews (public)
+      allow read: if true;
+      
+      // Authenticated users can create reviews
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      
+      // Users can update their own reviews
+      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      
+      // Users can delete their own reviews, or admins
+      allow delete: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || isAdmin()
+      );
+    }
+    
+    // ========================
+    // PROMOTIONS/OFFERS COLLECTION
+    // ========================
+    match /promotions/{promotionId} {
+      // Anyone can read active promotions
+      allow read: if true;
+      
+      // Only admins can write
+      allow write: if isAdmin();
+    }
+    
+    // ========================
+    // SUPPORT/TICKETS COLLECTION
+    // ========================
+    match /support/{ticketId} {
+      // Users can read their own tickets, admins can read all
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || isAdmin()
+      );
+      
+      // Authenticated users can create tickets
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      
+      // Users can update their own tickets, admins can update all
+      allow update: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || isAdmin()
+      );
+      
+      // Only admins can delete tickets
+      allow delete: if isAdmin();
+    }
+
+    // ========================
+    // WEB LANDING CONTENT
+    // ========================
+    match /web_landing/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ========================
+    // WHY CHOOSE US
+    // ========================
+    match /whyChooseUs/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // Deny all other requests by default
+  }
+}
